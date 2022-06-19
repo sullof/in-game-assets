@@ -15,7 +15,7 @@ contract WhitelistSlot is ERC1155, Ownable {
   mapping(address => uint256) private _burners;
 
   modifier onlyBurner(uint256 id) {
-    require(_burners[_msgSender()] == id, "Not the final NFT");
+    require(_burners[_msgSender()] == id, "WhitelistSlot: not the NFT using this whitelist");
     _;
   }
 
