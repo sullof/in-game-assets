@@ -26,7 +26,7 @@ nvm install v16
 The advantage of using nvm is that it does not install it as root (very important for security) and allows you to install many versions of Node and jump between them when you need it.
 
 ### 2 - Pnpm, Hardhat and dependencies 
-Install the packages. In this repo we use [pnpm](https://pnpm.io/) as favorite package manager, because it is faster than npm, saves lot of spaces reusing packages, manages monorepos, etc. We also want to install [Hardhat](https://hardhat.org/) to manage the smart contracts. 
+Install the packages. In this repo we use [pnpm](https://pnpm.io/) as favorite package manager, because it is faster than npm, saves lot of spaces reusing packages, manages monorepos, etc.
 ``` 
 npm i -g pnpm
 ```
