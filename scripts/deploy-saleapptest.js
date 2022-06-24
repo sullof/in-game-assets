@@ -12,7 +12,7 @@ async function main() {
   deployUtils = new DeployUtils(ethers)
 
   const chainId = await deployUtils.currentChainId()
-  let [deployer, whitelisted] = await ethers.getSigners();
+  let [deployer, whitelisted, whitelisted2, whitelisted3] = await ethers.getSigners();
 
 
   const network = chainId === 56 ? 'bsc'
@@ -58,8 +58,12 @@ async function main() {
   const id = 1;
   const amount = 5;
   await wl.mintBatch(whitelisted.address, [id], [amount], []);
+  await wl.mintBatch(whitelisted2.address, [id], [amount], []);
+  await wl.mintBatch(whitelisted3.address, [id], [amount], []);
   await wl.setBurnerForID(nft.address, id);
-  await nft.setWhitelist(wl.address, getCurrentTimestamp() + 1e6);
+  await nft.setWhitelist(wl.address, getCurrentTimestamp()
+      + 3600 * 24 // 1 day
+  );
   await nft.setFarmer(farm.address, true);
   await farm.setNewNft(nft.address);
   await farm.setPrice(1, ethers.utils.parseEther("1"));
