@@ -25,69 +25,65 @@ async function main() {
       'to', network
   );
 
-  const { NAME, SYMBOL, TOKEN_URI } = process.env
-  if (!NAME || !SYMBOL || !TOKEN_URI) {
-    console.error("Missing parameters")
-    process.exit(1);
-  }
-
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   const SuperpowerNFT = await ethers.getContractFactory("SuperpowerNFT")
-  const nft = await upgrades.deployProxy(SuperpowerNFT, [
-    NAME,
-    SYMBOL,
-    TOKEN_URI
+  const turf = await upgrades.deployProxy(SuperpowerNFT, [
+    "Mobland Turf",
+    "MLT",
+    "https://data.mob.land/turf/"
   ])
+  // Wait one at time because if an error occurs, you can restart from there, if you run before all the transaction, than only later you wait for the transaction to be included in a block, it becomes a mess to try to restart the script from where you left. Keeping them in order, you can comment the already executed code, attach the previous addresses, if needed, and execute the rest.
+  await turf.deployed()
+  await deployUtils.saveDeployed(chainId, [`TurfToken|SuperpowerNFT`], [turf.address])
+  console.log("TurfToken deployed to:", turf.address);
+
+  const farm = await upgrades.deployProxy(SuperpowerNFT, [
+    "Mobland Farm",
+    "MLF",
+    "https://data.mob.land/farm/"
+  ])
+  await farm.deployed()
+  await deployUtils.saveDeployed(chainId, [`FarmToken|SuperpowerNFT`], [farm.address])
+  console.log("FarmToken deployed to:", farm.address);
 
   const Whitelist = await ethers.getContractFactory("WhitelistSlot");
   const wl = await Whitelist.deploy();
+  await wl.deployed()
+  await deployUtils.saveDeployed(chainId, [`WhitelistSlot`], [wl.address])
+  console.log("WhitelistSlot deployed at ", whitelisted.address)
 
-  const FARM = await ethers.getContractFactory("NftFarm")
-  const farm = await upgrades.deployProxy(FARM, [])
+  const NftFarm = await ethers.getContractFactory("NftFarm")
+  const nftFarm = await upgrades.deployProxy(NftFarm, [])
+  await nftFarm.deployed()
+  await deployUtils.saveDeployed(chainId, [`NftFarm`], [nftFarm.address])
+  console.log("NftFarm deployed to:", nftFarm.address);
 
   const Game = await ethers.getContractFactory("PlayerMockUpgradeable");
   const game = await upgrades.deployProxy(Game, []);
-
-
-  await wl.deployed()
-  await nft.deployed()
-  await farm.deployed()
   await game.deployed()
+  console.log("PlayerMockUpgradeable deployed to:", game.address);
 
-  const id = 1;
-  const amount = 5;
-  await wl.mintBatch(whitelisted.address, [id], [amount], []);
-  await wl.mintBatch(whitelisted2.address, [id], [amount], []);
-  await wl.mintBatch(whitelisted3.address, [id], [amount], []);
-  await wl.setBurnerForID(nft.address, id);
-  await nft.setWhitelist(wl.address, getCurrentTimestamp()
-      + 3600 * 24 // 1 day
-  );
-  await nft.setFarmer(farm.address, true);
-  await farm.setNewNft(nft.address);
-  await farm.setPrice(1, ethers.utils.parseEther("1"));
-  await nft.setMaxSupply(1000);
-  await nft.setDefaultPlayer(game.address);
+  for (let id=1;id<=2;id++) {
+    let nft = id === 1 ? turf : farm;
+    const amount = 5;
+    await wl.mintBatch(whitelisted.address, [id], [amount], []);
+    await wl.mintBatch(whitelisted2.address, [id], [amount], []);
+    await wl.mintBatch(whitelisted3.address, [id], [amount], []);
+    await wl.setBurnerForID(nft.address, id);
+    await turf.setWhitelist(wl.address, getCurrentTimestamp()
+        + 3600 * 24 // 1 day
+    );
+    await nft.setFarmer(nftFarm.address, true);
+    await nftFarm.setNewNft(nft.address);
+    await nftFarm.setPrice(id, ethers.utils.parseEther("0.01"));
+    await nft.setMaxSupply(1000);
+    await nft.setDefaultPlayer(game.address);
+  }
 
-
-  await farm.connect(whitelisted).buyTokens(1, 2, {
-    value: ethers.BigNumber.from((await farm.getPrice(1)).mul(2)),
+  await nftFarm.connect(whitelisted).buyTokens(1, 2, {
+    value: ethers.BigNumber.from((await nftFarm.getPrice(1)).mul(2)),
   })
-
-
-  console.log("SuperpowerNFT deployed to:", nft.address);
-  console.log("Sale Farm deployed to:", farm.address);
-  console.log("Player Mock deployed to:", game.address);
-  console.log("initialized white listed at ", whitelisted.address)
-
-
-
-  let prefix = /turf/i.test(NAME) ? "TurfToken" : /farm/i.test(NAME) ? "FarmToken" : SYMBOL;
-  await deployUtils.saveDeployed(chainId, [`${prefix}|SuperpowerNFT`], [nft.address])
-  await deployUtils.saveDeployed(chainId, [`NftFarm`], [farm.address])
-  await deployUtils.saveDeployed(chainId, [`WhitelistSlot`], [wl.address])
-
 
 }
 
