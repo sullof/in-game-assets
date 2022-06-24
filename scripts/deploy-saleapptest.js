@@ -45,7 +45,7 @@ async function main() {
 
   const FARM = await ethers.getContractFactory("NftFarm")
   const farm = await upgrades.deployProxy(FARM, [])
-  
+
   const Game = await ethers.getContractFactory("PlayerMockUpgradeable");
   const game = await upgrades.deployProxy(Game, []);
 
@@ -59,7 +59,7 @@ async function main() {
   const amount = 5;
   await wl.mintBatch(whitelisted.address, [id], [amount], []);
   await wl.setBurnerForID(nft.address, id);
-  await nft.setWhitelist(wl.address, (await getCurrentTimestamp()) + 1e6);
+  await nft.setWhitelist(wl.address, getCurrentTimestamp() + 1e6);
   await nft.setFarmer(farm.address, true);
   await farm.setNewNft(nft.address);
   await farm.setPrice(1, ethers.utils.parseEther("1"));
