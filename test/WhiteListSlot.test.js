@@ -67,7 +67,7 @@ describe("WhiteList", function () {
       let balance2 = await wl.balanceOf(holder.address, ids[0]);
       expect(balance2).equal(balance.sub(burnAmmount));
       balance = await wl.balanceOf(holder.address, ids[1]);
-      expect(burner.burn(holder.address, ids[1], burnAmmount)).revertedWith("Not the final NFT");
+      expect(burner.burn(holder.address, ids[1], burnAmmount)).revertedWith("WhitelistSlot: not the NFT using this whitelist");
       await wl.setBurnerForID(burner.address, ids[1]);
       await burner.burn(holder.address, ids[1], burnAmmount);
       balance2 = await wl.balanceOf(holder.address, ids[1]);
