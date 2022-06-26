@@ -5,18 +5,18 @@ const {getCurrentTimestamp} = require("hardhat/internal/hardhat-network/provider
 
 // tests to be fixed
 
-describe("NftFarm", function () {
+describe("NftFactory", function () {
   let owner, whitelisted, notWhitelisted;
   let Whitelist, wl;
   let SuperpowerNFT, nft;
-  let NftFarm, farm;
+  let NftFactory, farm;
   let Game, game;
 
   before(async function () {
     [owner, whitelisted, notWhitelisted] = await ethers.getSigners();
     Whitelist = await ethers.getContractFactory("WhitelistSlot");
     SuperpowerNFT = await ethers.getContractFactory("SuperpowerNFT");
-    NftFarm = await ethers.getContractFactory("NftFarm");
+    NftFactory = await ethers.getContractFactory("NftFactory");
     Game = await ethers.getContractFactory("PlayerMockUpgradeable");
     initEthers(ethers);
   });
@@ -28,7 +28,7 @@ describe("NftFarm", function () {
     nft = await upgrades.deployProxy(SuperpowerNFT, ["Mobland Turf", "MLT", "https://s3.mob.land/turf/"]);
     await nft.deployed();
 
-    farm = await upgrades.deployProxy(NftFarm, []);
+    farm = await upgrades.deployProxy(NftFactory, []);
     await farm.deployed();
 
     const id = 1;
@@ -49,7 +49,7 @@ describe("NftFarm", function () {
     });
 
     it("should not buy because no payment", async function () {
-      expect(farm.connect(whitelisted).buyTokens(1, 3)).revertedWith("NftFarm: insufficient payment");
+      expect(farm.connect(whitelisted).buyTokens(1, 3)).revertedWith("NftFactory: insufficient payment");
     });
 
     it("should revert maxSupply not set or defaultPlayer not set", async function () {

@@ -36,11 +36,11 @@ async function main() {
   await deployUtils.saveDeployed(chainId, [`WhitelistSlot`], [wl.address]);
   console.log("WhitelistSlot deployed at ", whitelisted.address);
 
-  const NftFarm = await ethers.getContractFactory("NftFarm");
-  const nftFarm = await upgrades.deployProxy(NftFarm, []);
+  const NftFactory = await ethers.getContractFactory("NftFactory");
+  const nftFarm = await upgrades.deployProxy(NftFactory, []);
   await nftFarm.deployed();
-  await deployUtils.saveDeployed(chainId, [`NftFarm`], [nftFarm.address]);
-  console.log("NftFarm deployed to:", nftFarm.address);
+  await deployUtils.saveDeployed(chainId, [`NftFactory`], [nftFarm.address]);
+  console.log("NftFactory deployed to:", nftFarm.address);
 
   const Game = await ethers.getContractFactory("PlayerMockUpgradeable");
   const game = await upgrades.deployProxy(Game, []);

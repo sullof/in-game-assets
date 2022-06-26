@@ -12,13 +12,13 @@ import "./interfaces/ISuperpowerNFT.sol";
 
 //import "hardhat/console.sol";
 
-contract NftFarm is UUPSUpgradableTemplate {
+contract NftFactory is UUPSUpgradableTemplate {
   using AddressUpgradeable for address;
   using SafeMathUpgradeable for uint256;
 
   event NewPriceFor(uint8 nftId, uint256 price);
-  event FarmerSetFor(uint8 nftId, address farmer);
-  event FarmerRemovedFor(uint8 nftId, address farmer);
+  event FactorySetFor(uint8 nftId, address farmer);
+  event FactoryRemovedFor(uint8 nftId, address farmer);
   event NewNftForSale(uint8 nftId, address nft);
   event NftRemovedFromSale(uint8 nftId, address nft);
 
@@ -30,8 +30,8 @@ contract NftFarm is UUPSUpgradableTemplate {
 
   uint256 public proceedsBalance;
 
-  modifier onlyFarmer(uint8 nftId) {
-    require(nftIdByFarmer(_msgSender()) == nftId, "NftFarm: not a farmer for this nft");
+  modifier onlyFactory(uint8 nftId) {
+    require(nftIdByFactory(_msgSender()) == nftId, "NftFactory: not a farmer for this nft");
     _;
   }
 
@@ -42,8 +42,8 @@ contract NftFarm is UUPSUpgradableTemplate {
   function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
   function setNewNft(address nft) external onlyOwner {
-    require(nft.isContract(), "NftFarm: not a contract");
-    require(_nftsByAddress[nft] == 0, "NftFarm: token already set");
+    require(nft.isContract(), "NftFactory: not a contract");
+    require(_nftsByAddress[nft] == 0, "NftFactory: token already set");
     _lastNft++;
     _nftsByAddress[nft] = _lastNft;
     _nfts[_lastNft] = ISuperpowerNFT(nft);
@@ -51,27 +51,27 @@ contract NftFarm is UUPSUpgradableTemplate {
   }
 
   function removeNewNft(address nft) external onlyOwner {
-    require(_nftsByAddress[nft] > 0, "NftFarm: token not found");
+    require(_nftsByAddress[nft] > 0, "NftFactory: token not found");
     uint8 nftId = _nftsByAddress[nft];
     delete _nfts[nftId];
     delete _nftsByAddress[nft];
     emit NftRemovedFromSale(nftId, nft);
   }
 
-  function setFarmer(uint8 nftId, address farmer) external onlyOwner {
-    require(farmer.isContract(), "NftFarm: not a contract");
+  function setFactory(uint8 nftId, address farmer) external onlyOwner {
+    require(farmer.isContract(), "NftFactory: not a contract");
     _farmers[nftId] == farmer;
-    emit FarmerSetFor(nftId, farmer);
+    emit FactorySetFor(nftId, farmer);
   }
 
-  function removeFarmerForNft(uint8 nftId, address farmer) external onlyOwner {
-    require(_farmers[nftId] == farmer, "NftFarm: farmer not found");
+  function removeFactoryForNft(uint8 nftId, address farmer) external onlyOwner {
+    require(_farmers[nftId] == farmer, "NftFactory: farmer not found");
     delete _farmers[nftId];
-    emit FarmerRemovedFor(nftId, farmer);
+    emit FactoryRemovedFor(nftId, farmer);
   }
 
   function setPrice(uint8 nftId, uint256 price) external onlyOwner {
-    require(address(_nfts[nftId]) != address(0), "NftFarm: token not found");
+    require(address(_nfts[nftId]) != address(0), "NftFactory: token not found");
     _prices[nftId] = price;
     emit NewPriceFor(nftId, price);
   }
@@ -80,7 +80,7 @@ contract NftFarm is UUPSUpgradableTemplate {
     return _prices[nftId];
   }
 
-  function nftIdByFarmer(address farmer) public view returns (uint8) {
+  function nftIdByFactory(address farmer) public view returns (uint8) {
     for (uint8 i = 0; i < _lastNft + 1; i++) {
       if (_farmers[i] == farmer) {
         return i;
@@ -90,7 +90,7 @@ contract NftFarm is UUPSUpgradableTemplate {
   }
 
   function buyTokens(uint8 nftId, uint256 amount) external payable {
-    require(msg.value >= _prices[nftId].mul(amount), "NftFarm: insufficient payment");
+    require(msg.value >= _prices[nftId].mul(amount), "NftFactory: insufficient payment");
     proceedsBalance += msg.value;
     _nfts[nftId].mintAndInit(_msgSender(), amount);
   }
@@ -99,7 +99,7 @@ contract NftFarm is UUPSUpgradableTemplate {
     if (amount == 0) {
       amount = proceedsBalance;
     }
-    require(amount <= proceedsBalance, "NftFarm: insufficient funds");
+    require(amount <= proceedsBalance, "NftFactory: insufficient funds");
     proceedsBalance -= amount;
     (bool success, ) = beneficiary.call{value: amount}("");
     require(success);
